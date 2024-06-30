@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model device {
+  device_id           Int             @id
+  device_name         String?         @db.VarChar(100)
+  device_description  String?
+  device_availability Boolean?
+  device_approve      Boolean?
+  device_count        Int?
+  loan_detail         loan_detail[]
+  return_detail       return_detail[]
+  room                room[]
+  transaction         transaction[]
+}
+
+model loan_detail {
+  loan_id                                             Int           @id @default(autoincrement())
+  transaction_id                                      Int           @default(autoincrement())
+  device_id                                           Int           @default(autoincrement())
+  loan_date                                           DateTime?     @db.Timestamptz(6)
+  location_to_loan                                    String?       @db.VarChar(100)
+  device                                              device        @relation(fields: [device_id], references: [device_id], onDelete: NoAction, onUpdate: NoAction, map: "loan_device")
+  transaction_loan_detail_transaction_idTotransaction transaction   @relation("loan_detail_transaction_idTotransaction", fields: [transaction_id], references: [transaction_id], onDelete: NoAction, onUpdate: NoAction, map: "loan_transaction")
+  transaction_transaction_loan_idToloan_detail        transaction[] @relation("transaction_loan_idToloan_detail")
+}
+
+model return_detail {
+  return_id                                             Int           @id @default(autoincrement())
+  transaction_id                                        Int           @default(autoincrement())
+  device_id                                             Int           @default(autoincrement())
+  return_date                                           DateTime?     @db.Timestamptz(6)
+  location_to_return                                    String?       @db.VarChar(100)
+  device                                                device        @relation(fields: [device_id], references: [device_id], onDelete: NoAction, onUpdate: NoAction, map: "return_device")
+  transaction_return_detail_transaction_idTotransaction transaction   @relation("return_detail_transaction_idTotransaction", fields: [transaction_id], references: [transaction_id], onDelete: NoAction, onUpdate: NoAction, map: "return_transaction")
+  transaction_transaction_return_idToreturn_detail      transaction[] @relation("transaction_return_idToreturn_detail")
+}
+
+model room {
+  room_id   String  @id @db.VarChar(100)
+  device_id Int?
+  device    device? @relation(fields: [device_id], references: [device_id], onDelete: NoAction, onUpdate: NoAction, map: "room_device_id")
+}
+
+model transaction {
+  transaction_id                                          Int             @id @default(autoincrement())
+  user_id                                                 Int             @default(autoincrement())
+  device_id                                               Int             @default(autoincrement())
+  loan_id                                                 Int             @default(autoincrement())
+  return_id                                               Int             @default(autoincrement())
+  loan_date_setting                                       DateTime?       @db.Timestamptz(6)
+  return_date_setting                                     DateTime?       @db.Timestamptz(6)
+  due_date_setting                                        DateTime?       @db.Timestamptz(6)
+  transaction_history                                     String?
+  transaction_report                                      String?
+  loan_detail_loan_detail_transaction_idTotransaction     loan_detail[]   @relation("loan_detail_transaction_idTotransaction")
+  return_detail_return_detail_transaction_idTotransaction return_detail[] @relation("return_detail_transaction_idTotransaction")
+  device                                                  device          @relation(fields: [device_id], references: [device_id], onDelete: NoAction, onUpdate: NoAction, map: "transaction_device")
+  loan_detail_transaction_loan_idToloan_detail            loan_detail     @relation("transaction_loan_idToloan_detail", fields: [loan_id], references: [loan_id], onDelete: NoAction, onUpdate: NoAction, map: "transaction_loan")
+  return_detail_transaction_return_idToreturn_detail      return_detail   @relation("transaction_return_idToreturn_detail", fields: [return_id], references: [return_id], onDelete: NoAction, onUpdate: NoAction, map: "transaction_return")
+  users                                                   users           @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "transaction_user")
+}
+
+model users {
+  user_id        Int           @id @default(autoincrement())
+  user_firstname String?       @db.VarChar(100)
+  user_lastname  String?       @db.VarChar(100)
+  user_email     String?       @db.VarChar(100)
+  user_password  String?       @db.VarChar(255)
+  user_role      String?       @db.VarChar(100)
+  transaction    transaction[]
+}
