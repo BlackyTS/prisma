@@ -1,0 +1,27 @@
+services:
+  app:
+    image: node:18-alpine
+    command: sh -c "npm i && npx prisma generate && npx prisma migrate dev --name init && npm run dev"
+    ports:
+      - 127.0.0.1:8000:8000
+    working_dir: /app
+    volumes: 
+      - ./:/app
+    environment:
+      DATABASE_URL: postgresql://postgres:admin@postgres:5432/ProjectTEST?schema=public
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: ProjectTEST
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
